@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Informasi Lab Kesehatan</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f7f6; }
+        h1, h2 { color: #333; }
+        .container { display: flex; gap: 20px; }
+        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .form-box { width: 30%; }
+        .table-box { width: 70%; }
+        .full-box { width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        input, select { width: 100%; padding: 8px; margin: 8px 0; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: white; padding: 10px; border: none; width: 100%; cursor: pointer; font-weight: bold; border-radius: 4px; }
+        button:hover { background-color: #45a049; }
+        .btn-mini { background-color: #2980b9; width: auto; padding: 5px 10px; display: inline-block; }
+        .btn-mini:hover { background-color: #2471a3; }
+        
+        /* STYLE LOGIN & REGISTRASI */
+        .auth-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 85vh;
+        }
+        .auth-box {
+            width: 380px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        .link-pindah {
+            color: #2980b9;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 14px;
+            margin-top: 15px;
+            display: inline-block;
+        }
+
+        /* TAMPILAN ELEMEN SISTEM */
+        .header-app, #dashboardAdmin, #dashboardPengguna {
+            display: none; 
+        }
+        .logout-btn {
+            background-color: #e74c3c;
+            width: auto;
+            padding: 8px 15px;
+            float: right;
+            margin-top: -50px;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        .badge-role {
+            background-color: #34495e;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-wrapper" id="halamanLogin">
+        <div class="auth-box">
+            <h2 style="margin-bottom: 5px;">🏥 Log In</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Sistem Informasi Laboratorium</p>
+            <form id="formLogin">
+                <div style="text-align: left;">
+                    <label>Username:</label>
+                    <input type="text" id="loginUsername" placeholder="Masukkan username" required>
+                    
+                    <label>Password:</label>
+                    <input type="password" id="loginPassword" placeholder="Masukkan password" required>
+                </div>
+                <p id="errorLogin" style="color: red; font-size: 13px; display: none; font-weight: bold;">⚠️ Username atau Password salah!</p>
+                <button type="submit" style="margin-top: 15px;">Masuk Ke Sistem</button>
+            </form>
+            <span class="link-pindah" onclick="tampilkanForm('register')">Belum punya akun? Buat Akun Baru</span>
+        </div>
+    </div>
+
+    <div class="auth-wrapper" id="halamanRegister" style="display: none;">
+        <div class="auth-box">
+            <h2 style="margin-bottom: 5px;">📝 Buat Akun</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Silakan isi formulir pendaftaran</p>
+            <form id="formRegister">
+                <div style="text-align: left;">
+                    <label>Nama Lengkap:</label>
+                    <input type="text" id="regNama" placeholder="Nama lengkap Anda" required>
+
+                    <label>Username Baru:</label>
+                    <input type="text" id="regUsername" placeholder="Buat username unik" required>
+                    
+                    <label>Password:</label>
+                    <input type="password" id="regPassword" placeholder="Buat password unik" required>
+
+                    <label>Daftar Sebagai (Role):</label>
+                    <select id="regRole">
+                        <option value="pengguna">Pengguna / Pasien</option>
+                        <option value="admin">Admin Laboratorium</option>
+                    </select>
+                </div>
+                <p id="errorRegister" style="color: red; font-size: 13px; display: none; font-weight: bold;">⚠️ Username sudah digunakan!</p>
+                <button type="submit" style="margin-top: 15px; background-color: #2980b9;">Daftar Sekarang</button>
+            </form>
+            <span class="link-pindah" onclick="tampilkanForm('login')">Sudah punya akun? Log In</span>
+        </div>
+    </div>
+
+    <div class="header-app" id="headerApp">
+        <h1>🏥 Sistem Pendataan Laboratorium Kesehatan <span id="badgeUser" class="badge-role"></span></h1>
+        <p style="margin-top: -10px; color: #555;">Selamat datang, <b id="namaUserAktif"></b></p>
+        <button class="logout-btn" onclick="logoutSistem()">Log Out</button>
+        <hr>
+    </div>
+
+    <div class="container" id="dashboardAdmin">
+        <div class="box form-box">
+            <h2>Pendaftaran Pasien (Admin)</h2>
+            <form id="formPasienAdmin">
+                <label>Nama Pasien:</label>
+                <input type="text" id="admNama" required>
+                
+                <label>Jenis Kelamin:</label>
+                <select id="admJk">
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+                
+                <label>Umur (Tahun):</label>
+                <input type="number" id="admUmur" required>
+                
+                <label>Jenis Pemeriksaan:</label>
+                <input type="text" id="admPemeriksaan" placeholder="Contoh: Darah Lengkap, Urine" required>
+                
+                <button type="submit">Daftarkan Pasien</button>
+            </form>
+        </div>
+
+        <div class="box table-box">
+            <h2>Data & Antrean Semua Pasien</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama Pasien (Username Pendaftar)</th>
+                        <th>Pemeriksaan</th>
+                        <th>Status MCU</th>
+                        <th>Hasil Lab / Tindakan</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelBodyAdmin">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="container" id="dashboardPengguna">
+        <div class="box form-box">
+            <h2>Ajukan Pemeriksaan Baru</h2>
+            <form id="formPasienPengguna">
+                <label>Nama Pasien:</label>
+                <input type="text" id="usrNama" disabled>
+                
+                <label>Jenis Kelamin:</label>
+                <select id="usrJk">
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+                
+                <label>Umur (Tahun):</label>
+                <input type="number" id="usrUmur" required>
+                
+                <label>Jenis Pemeriksaan Yang Diinginkan:</label>
+                <input type="text" id="usrPemeriksaan" placeholder="Contoh: Swab Antigen, Kolesterol" required>
+                
+                <button type="submit" style="background-color: #2980b9;">Kirim Permohonan Lab</button>
+            </form>
+        </div>
+
+        <div class="box table-box">
+            <h2>Riwayat & Hasil Laboratorium Saya</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Lengkap</th>
+                        <th>Jenis Pemeriksaan</th>
+                        <th>Status</th>
+                        <th>Hasil Laboratorium Anda</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelBodyPengguna">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA DEFAULT DI LOCALSTORAGE ---
+        // Akun bawaan awal untuk testing
+        let dataAkun = JSON.parse(localStorage.getItem('akun_lab')) || [
+            { nama: "Cecep Admin", username: "cecep", password: "cecep123", role: "admin" },
+            { nama: "Budi Pasien", username: "budi", password: "budi123", role: "pengguna" }
+        ];
+        let daftarPasien = JSON.parse(localStorage.getItem('pasien_lab')) || [];
+
+        // --- MANAJEMEN NAVIGASI FORM AUTH ---
+        function tampilkanForm(tipe) {
+            if (tipe === 'register') {
+                document.getElementById('halamanLogin').style.display = 'none';
+                document.getElementById('halamanRegister').style.display = 'flex';
+            } else {
+                document.getElementById('halamanLogin').style.display = 'flex';
+                document.getElementById('halamanRegister').style.display = 'none';
+            }
+        }
+
+        // --- PROSES DAFTAR AKUN BARU ---
+        document.getElementById('formRegister').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nama = document.getElementById('regNama').value;
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const role = document.getElementById('regRole').value;
+            const errorRegister = document.getElementById('errorRegister');
+
+            // Cek apakah username sudah ada
+            const userExist = dataAkun.find(user => user.username === username);
+            if (userExist) {
+                errorRegister.style.display = 'block';
+                return;
+            }
+
+            // Simpan akun baru
+            dataAkun.push({ nama, username, password, role });
+            localStorage.setItem('akun_lab', JSON.stringify(dataAkun));
+            
+            alert('Akun berhasil dibuat! Silakan login.');
+            document.getElementById('formRegister').reset();
+            errorRegister.style.display = 'none';
+            tampilkanForm('login');
+        });
+
+        // --- PROSES LOGIN ---
+        document.getElementById('formLogin').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const userIn = document.getElementById('loginUsername').value.trim();
+            const passIn = document.getElementById('loginPassword').value;
+            const errorLogin = document.getElementById('errorLogin');
+
+            // Cocokkan data kredensial
+            const userValid = dataAkun.find(user => user.username === userIn && user.password === passIn);
+
+            if (userValid) {
+                sessionStorage.setItem('statusLogin', 'sukses');
+                sessionStorage.setItem('usernameAktif', userValid.username);
+                sessionStorage.setItem('namaAktif', userValid.nama);
+                sessionStorage.setItem('roleAktif', userValid.role);
+                
+                bukaSistemWeb();
+                document.getElementById('formLogin').reset();
+                errorLogin.style.display = 'none';
+            } else {
+                errorLogin.style.display = 'block';
+            }
+        });
+
+        // --- LOGIKA MENAMPILKAN DASHBOARD BERDASARKAN ROLE ---
+        function bukaSistemWeb() {
+            if (sessionStorage.getItem('statusLogin') !== 'sukses') return;
+
+            const role = sessionStorage.getItem('roleAktif');
+            const nama = sessionStorage.getItem('namaAktif');
+
+            // Tampilkan Header Aplikasi
+            document.getElementById('halamanLogin').style.display = 'none';
+            document.getElementById('halamanRegister').style.display = 'none';
+            document.getElementById('headerApp').style.display = 'block';
+            document.getElementById('namaUserAktif').innerText = nama;
+            
+            const badge = document.getElementById('badgeUser');
+            badge.innerText = role.toUpperCase();
+            badge.style.backgroundColor = role === 'admin' ? '#e74c3c' : '#2980b9';
+
+            // Pisahkan Tampilan Dashboard
+            if (role === 'admin') {
+                document.getElementById('dashboardAdmin').style.display = 'flex';
+                document.getElementById('dashboardPengguna').style.display = 'none';
+                tampilkanDataAdmin();
+            } else {
+                document.getElementById('dashboardAdmin').style.display = 'none';
+                document.getElementById('dashboardPengguna').style.display = 'flex';
+                document.getElementById('usrNama').value = nama; // Set form nama otomatis
+                tampilkanDataPengguna();
+            }
+        }
+
+        // --- CEK SESI LOGIN SAAT REFRESH ---
+        if (sessionStorage.getItem('statusLogin') === 'sukses') {
+            bukaSistemWeb();
+        }
+
+        // --- PROSES LOGOUT ---
+        function logoutSistem() {
+            sessionStorage.clear();
+            window.location.reload();
+        }
+
+
+        // ================= RENDERING DATA & CRUD =================
+
+        // 1. FUNGSI UNTUK DASHBOARD ADMIN
+        function tampilkanDataAdmin() {
+            const tabelBodyAdmin = document.getElementById('tabelBodyAdmin');
+            tabelBodyAdmin.innerHTML = '';
+            
+            if (daftarPasien.length === 0) {
+                tabelBodyAdmin.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#888;">Belum ada data pasien global.</td></tr>`;
+                return;
+            }
+
+            daftarPasien.forEach((p, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><b>${p.nama}</b><br><small>${p.jk}, ${p.umur} Thn (${p.pendaftar})</small></td>
+                    <td>${p.pemeriksaan}</td>
+                    <td>
+                        <span style="color: ${p.status === 'Sudah MCU' ? 'green' : 'red'}; font-weight: bold;">
+                            ${p.status}
+                        </span>
+                    </td>
+                    <td>
+                        <select onchange="updateStatus(${index}, this.value)" style="width: auto; padding: 2px;">
+                            <option value="Belum MCU" ${p.status === 'Belum MCU' ? 'selected' : ''}>Belum MCU</option>
+                            <option value="Sudah MCU" ${p.status === 'Sudah MCU' ? 'selected' : ''}>Sudah MCU</option>
+                        </select>
+                        <input type="text" value="${p.hasil || ''}" placeholder="Isi hasil lab" onchange="updateHasil(${index}, this.value)" style="width: 40%; padding: 4px; margin: 0 5px;">
+                        <button class="btn-mini" onclick="simpanPerubahan()">Simpan</button>
+                    </td>
+                `;
+                tabelBodyAdmin.appendChild(tr);
+            });
+        }
+
+        // 2. FUNGSI UNTUK DASHBOARD PENGGUNA (HANYA AKUNNYA SENDIRI)
+        function tampilkanDataPengguna() {
+            const tabelBodyPengguna = document.getElementById('tabelBodyPengguna');
+            const usernameAktif = sessionStorage.getItem('usernameAktif');
+            tabelBodyPengguna.innerHTML = '';
+
+            // Filter data agar pengguna hanya melihat data miliknya saja
+            const dataSaya = daftarPasien.filter(p => p.pendaftar === usernameAktif);
+
+            if (dataSaya.length === 0) {
+                tabelBodyPengguna.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#888;">Anda belum pernah mengajukan pemeriksaan.</td></tr>`;
+                return;
+            }
+
+            dataSaya.forEach((p, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><b>${p.nama}</b><br><small>${p.jk}, ${p.umur} Thn</small></td>
+                    <td>${p.pemeriksaan}</td>
+                    <td>
+                        <span style="color: ${p.status === 'Sudah MCU' ? 'green' : 'red'}; font-weight: bold;">
+                            ${p.status}
+                        </span>
+                    </td>
+                    <td>
+                        <i style="color: #555;">${p.hasil || 'Menunggu pemeriksaan/belum diisi oleh Admin'}</i>
+                    </td>
+                `;
+                tabelBodyPengguna.appendChild(tr);
+            });
+        }
+
+        // --- SUBMIT FORM PASIEN OLEH ADMIN ---
+        document.getElementById('formPasienAdmin').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pasienBaru = {
+                nama: document.getElementById('admNama').value,
+                jk: document.getElementById('admJk').value,
+                umur: document.getElementById('admUmur').value,
+                pemeriksaan: document.getElementById('admPemeriksaan').value,
+                status: 'Belum MCU',
+                hasil: '',
+                pendaftar: 'admin_' + sessionStorage.getItem('usernameAktif') // Penanda diinput admin
+            };
+            daftarPasien.push(pasienBaru);
+            localStorage.setItem('pasien_lab', JSON.stringify(daftarPasien));
+            document.getElementById('formPasienAdmin').reset();
+            tampilkanDataAdmin();
+        });
+
+        // --- SUBMIT FORM PASIEN OLEH PENGGUNA ---
+        document.getElementById('formPasienPengguna').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pasienBaru = {
+                nama: sessionStorage.getItem('namaAktif'), // Nama otomatis sesuai akun login
+                jk: document.getElementById('usrJk').value,
+                umur: document.getElementById('usrUmur').value,
+                pemeriksaan: document.getElementById('usrPemeriksaan').value,
+                status: 'Belum MCU',
+                hasil: '',
+                pendaftar: sessionStorage.getItem('usernameAktif') // Kunci kepemilikan data
+            };
+            daftarPasien.push(pasienBaru);
+            localStorage.setItem('pasien_lab', JSON.stringify(daftarPasien));
+            document.getElementById('formPasienPengguna').reset();
+            document.getElementById('usrNama').value = sessionStorage.getItem('namaAktif'); // Reset ulang isian nama otomatis
+            tampilkanDataPengguna();
+            alert('Pendaftaran berhasil dikirim! Silakan tunggu pemeriksaan dari admin.');
+        });
+
+        // --- ACTION FUNGSIONAL ADMIN ---
+        function updateStatus(index, nilaiBaru) {
+            daftarPasien[index].status = nilaiBaru;
+        }
+
+        function updateHasil(index, nilaiBaru) {
+            daftarPasien[index].hasil = nilaiBaru;
+        }
+
+        function simpanPerubahan() {
+            localStorage.setItem('pasien_lab', JSON.stringify(daftarPasien));
+            tampilkanDataAdmin();
+            alert('Data pemeriksaan berhasil di-update oleh Admin!');
+        }
+    </script>
+</body>
+</html>
